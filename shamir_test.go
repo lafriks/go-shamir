@@ -9,7 +9,7 @@ import (
 func TestSplit_valid(t *testing.T) {
 	secret := []byte("example")
 
-	shares, err := Split(5, 3, secret)
+	shares, err := Split(secret, 5, 3)
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -28,23 +28,23 @@ func TestSplit_valid(t *testing.T) {
 func TestSplit_invalid(t *testing.T) {
 	secret := []byte("example")
 
-	if _, err := Split(5, 0, secret); !errors.Is(err, ErrInvalidThreshold) {
+	if _, err := Split(secret, 5, 0); !errors.Is(err, ErrInvalidThreshold) {
 		t.Fatal("Expected ErrInvalidCount")
 	}
 
-	if _, err := Split(0, 3, secret); !errors.Is(err, ErrInvalidCount) {
+	if _, err := Split(secret, 0, 3); !errors.Is(err, ErrInvalidCount) {
 		t.Fatal("Expected ErrInvalidCount")
 	}
 
-	if _, err := Split(400, 300, secret); !errors.Is(err, ErrInvalidThreshold) {
+	if _, err := Split(secret, 400, 300); !errors.Is(err, ErrInvalidThreshold) {
 		t.Fatal("Expected ErrInvalidCount")
 	}
 
-	if _, err := Split(300, 3, secret); !errors.Is(err, ErrInvalidCount) {
+	if _, err := Split(secret, 300, 3); !errors.Is(err, ErrInvalidCount) {
 		t.Fatal("Expected ErrInvalidCount")
 	}
 
-	if _, err := Split(5, 3, nil); !errors.Is(err, ErrEmptySecret) {
+	if _, err := Split(nil, 5, 3); !errors.Is(err, ErrEmptySecret) {
 		t.Fatal("Expected ErrEmptySecret")
 	}
 }
@@ -52,7 +52,7 @@ func TestSplit_invalid(t *testing.T) {
 func TestCombine_valid(t *testing.T) {
 	secret := []byte("example")
 
-	shares, err := Split(5, 3, secret)
+	shares, err := Split(secret, 5, 3)
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -66,7 +66,7 @@ func TestCombine_valid(t *testing.T) {
 				if k == i || k == j {
 					continue
 				}
-				reconstructed, err := Combine([][]byte{shares[i], shares[j], shares[k]})
+				reconstructed, err := Combine(shares[i], shares[j], shares[k])
 				if err != nil {
 					t.Fatalf("Unexpected error: %v", err)
 				}
@@ -84,15 +84,15 @@ func TestCombine_invalid(t *testing.T) {
 		t.Fatal("Expected ErrInvalidShares")
 	}
 
-	if _, err := Combine([][]byte{[]byte("exam"),[]byte("ple")}); err == nil {
+	if _, err := Combine([]byte("exam"), []byte("ple")); err == nil {
 		t.Fatal("Expected ErrInvalidShares")
 	}
 
-	if _, err := Combine([][]byte{[]byte("a"),[]byte("b")}); err == nil {
+	if _, err := Combine([]byte("a"), []byte("b")); err == nil {
 		t.Fatal("Expected ErrInvalidShares")
 	}
 
-	if _, err := Combine([][]byte{[]byte("aa"),[]byte("aa")}); err == nil {
+	if _, err := Combine([]byte("aa"), []byte("aa")); err == nil {
 		t.Fatal("Expected ErrInvalidShares")
 	}
 }

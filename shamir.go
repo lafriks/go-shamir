@@ -57,7 +57,7 @@ var (
 
 // Split the given secret into N shares of which K are required to recover the
 // secret. Returns an array of shares.
-func Split(n, k int, secret []byte) ([][]byte, error) {
+func Split(secret []byte, n, k int) ([][]byte, error) {
 	if k <= 1 || k > 255 {
 		return nil, ErrInvalidThreshold
 	}
@@ -95,7 +95,7 @@ func Split(n, k int, secret []byte) ([][]byte, error) {
 }
 
 // Combine the given shares into the original secret.
-func Combine(shares [][]byte) ([]byte, error) {
+func Combine(shares ...[]byte) ([]byte, error) {
 	if len(shares) < 2 || len(shares[0]) < 2 {
 		return nil, ErrInvalidShares
 	}
