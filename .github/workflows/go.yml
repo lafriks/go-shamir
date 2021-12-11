@@ -22,7 +22,7 @@ jobs:
       - run: go test ./...
 
   coverage:
-    name: test
+    name: Test on Go 1.17
     runs-on: ubuntu-latest
     steps:
 
