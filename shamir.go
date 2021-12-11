@@ -66,8 +66,7 @@ func (s *cryptoSource) Int63() int64 {
 	return int64(binary.BigEndian.Uint64(s[:]) & (1<<63 - 1))
 }
 
-func (s *cryptoSource) Seed(seed int64) {
-	panic("seed")
+func (s *cryptoSource) Seed(_ int64) {
 }
 
 // Split the given secret into N shares of which K are required to recover the
