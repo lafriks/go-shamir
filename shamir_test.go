@@ -71,7 +71,7 @@ func TestCombine_valid(t *testing.T) {
 					t.Fatalf("Unexpected error: %v", err)
 				}
 
-				if bytes.Compare(secret, reconstructed) != 0 {
+				if !bytes.Equal(secret, reconstructed) {
 					t.Fatalf("Expected '%s' but got '%s' (i:%d j:%d k:%d shares: %v)", secret, reconstructed, i, j, k, shares)
 				}
 			}

@@ -1,7 +1,7 @@
 # Shamir's Secret Sharing
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/lafriks/go-shamir.svg)](https://pkg.go.dev/github.com/lafriks/go-shamir)
-[![Coverage Status](https://coveralls.io/repos/github/lafriks/go-shamir/badge.svg?branch=master)](https://coveralls.io/github/lafriks/go-shamir?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/lafriks/go-shamir/badge.svg?branch=main)](https://coveralls.io/github/lafriks/go-shamir?branch=main)
 
 Based on [github.com/codahale/sss](https://github.com/codahale/sss)
 

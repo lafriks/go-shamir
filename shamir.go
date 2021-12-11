@@ -39,21 +39,36 @@
 package shamir
 
 import (
+	crand "crypto/rand"
+	"encoding/binary"
 	"errors"
 	mrand "math/rand"
-	"time"
 )
 
 var (
 	// ErrInvalidCount is returned when the count parameter is invalid.
-	ErrInvalidCount = errors.New("Shares must be more or equal to treshold but not more than 255")
+	ErrInvalidCount = errors.New("shares must be more or equal to treshold but not more than 255")
 	// ErrInvalidThreshold is returned when the threshold parameter is invalid.
-	ErrInvalidThreshold = errors.New("Treshold must be at least 2 but not more than 255")
+	ErrInvalidThreshold = errors.New("treshold must be at least 2 but not more than 255")
 	// ErrEmptySecret is returned when provided secret is empty.
-	ErrEmptySecret = errors.New("Secret can not be empty")
+	ErrEmptySecret = errors.New("secret can not be empty")
 	// ErrInvalidShares is returned when not required minimum shares are provided or shares does not have same length.
-	ErrInvalidShares = errors.New("At least 2 shares are required and must have same length")
+	ErrInvalidShares = errors.New("at least 2 shares are required and must have same length")
 )
+
+type cryptoSource [8]byte
+
+func (s *cryptoSource) Int63() int64 {
+	_, err := crand.Read(s[:])
+	if err != nil {
+		panic(err)
+	}
+	return int64(binary.BigEndian.Uint64(s[:]) & (1<<63 - 1))
+}
+
+func (s *cryptoSource) Seed(seed int64) {
+	panic("seed")
+}
 
 // Split the given secret into N shares of which K are required to recover the
 // secret. Returns an array of shares.
@@ -70,8 +85,8 @@ func Split(secret []byte, n, k int) ([][]byte, error) {
 		return nil, ErrEmptySecret
 	}
 
-	mrand.Seed(time.Now().UnixNano())
-	cords := mrand.Perm(255)
+	rnd := mrand.New(&cryptoSource{})
+	cords := rnd.Perm(255)
 
 	shares := make([][]byte, n)
 	for i := range shares {
