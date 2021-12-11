@@ -7,6 +7,8 @@ Based on [github.com/codahale/sss](https://github.com/codahale/sss)
 
 A pure Go implementation of [Shamir's Secret Sharing algorithm](http://en.wikipedia.org/wiki/Shamir's_Secret_Sharing)
 
+Supports from Go 1.14
+
 ## Usage
 
 ```sh
