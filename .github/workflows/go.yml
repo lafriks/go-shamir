@@ -7,16 +7,29 @@ on:
     branches: [ main ]
 
 jobs:
-
   test:
-    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: [ '1.14', '1.15', '1.16' ]
+    name: Test on Go ${{ matrix.go }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go ${{ matrix.go }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }}
+      - run: go test ./...
+
+  coverage:
+    name: test
     runs-on: ubuntu-latest
     steps:
 
-    - name: Set up Go 1.x
+    - name: Set up Go 1.17
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.14
+        go-version: ^1.17
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
