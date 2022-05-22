@@ -97,6 +97,7 @@ func Split(secret []byte, n, k int) ([][]byte, error) {
 		p, err := generate(byte(k)-1, b)
 		if err != nil {
 			return nil, err
+			err = nil
 		}
 
 		for j := 0; j < n; j++ {
