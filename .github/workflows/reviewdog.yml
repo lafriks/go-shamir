@@ -25,8 +25,5 @@ jobs:
 
     - name: Run reviewdog
       uses: reviewdog/action-setup@v1
-      env:
-        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        golint ./... | reviewdog -f=golint -reporter=github-pr-check
-        go vet ./... | reviewdog -f=govet -reporter=github-pr-check
+      with:
+        reviewdog_version: latest

@@ -5,5 +5,5 @@ runner:
       - "%f:%l:%c: %m"
     level: warning
   govet:
-    cmd: go vet -all .
+    cmd: go vet ./...
     format: govet
