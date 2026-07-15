@@ -18,32 +18,43 @@ func eval(p []byte, x byte) (result byte) {
 	return
 }
 
-// generates a random n-degree polynomial w/ a given x-intercept
-func generate(degree byte, x byte) ([]byte, error) {
+// builds a degree-length polynomial with the given x-intercept, using mid as its random middle
+// coefficients and top as its (non-zero) leading coefficient
+func buildPolynomial(degree, x byte, mid []byte, top byte) []byte {
 	result := make([]byte, degree+1)
 	result[0] = x
+	copy(result[1:degree], mid)
+	result[degree] = top
+	return result
+}
 
-	buf := make([]byte, degree-1)
-	if _, err := io.ReadFull(rand.Reader, buf); err != nil {
-		return nil, err
+// generates the random coefficients needed to build num degree-length polynomials: num*(degree-1)
+// middle coefficients and num non-zero leading coefficients. The randomness is bulk-read up front
+// so this costs a handful of crypto/rand reads total, instead of two per polynomial.
+func generateCoefficients(num int, degree byte) (mid, top []byte, err error) {
+	mid = make([]byte, num*int(degree-1))
+	if _, err = io.ReadFull(rand.Reader, mid); err != nil {
+		return nil, nil, err
 	}
 
-	for i := byte(1); i < degree; i++ {
-		result[i] = buf[i-1]
+	top = make([]byte, num)
+	if _, err = io.ReadFull(rand.Reader, top); err != nil {
+		return nil, nil, err
 	}
 
-	// the Nth term can't be zero, or else it's a (N-1) degree polynomial
-	for {
-		buf = make([]byte, 1)
-		if _, err := io.ReadFull(rand.Reader, buf); err != nil {
-			return nil, err
+	// the leading coefficient can't be zero, or else it's a lower degree polynomial
+	var buf [1]byte
+	for i, b := range top {
+		for b == 0 {
+			if _, err = io.ReadFull(rand.Reader, buf[:]); err != nil {
+				return nil, nil, err
+			}
+			b = buf[0]
 		}
-
-		if buf[0] != 0 {
-			result[degree] = buf[0]
-			return result, nil
-		}
+		top[i] = b
 	}
+
+	return mid, top, nil
 }
 
 // an input/output pair

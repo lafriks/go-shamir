@@ -56,14 +56,25 @@ var (
 	ErrInvalidShares = errors.New("at least 2 shares are required and must have same length")
 )
 
-type cryptoSource [8]byte
+// cryptoSourceBufSize covers a full rand.Perm(255) call (up to 254 Int63 calls) from a single
+// crypto/rand read, instead of one read per call.
+const cryptoSourceBufSize = 256 * 8
+
+type cryptoSource struct {
+	buf []byte
+}
 
 func (s *cryptoSource) Int63() int64 {
-	_, err := crand.Read(s[:])
-	if err != nil {
-		panic(err)
+	if len(s.buf) < 8 {
+		s.buf = make([]byte, cryptoSourceBufSize)
+		if _, err := crand.Read(s.buf); err != nil {
+			panic(err)
+		}
 	}
-	return int64(binary.BigEndian.Uint64(s[:]) & (1<<63 - 1))
+
+	v := int64(binary.BigEndian.Uint64(s.buf) & (1<<63 - 1))
+	s.buf = s.buf[8:]
+	return v
 }
 
 func (s *cryptoSource) Seed(_ int64) {
@@ -87,17 +98,21 @@ func Split(secret []byte, n, k int) ([][]byte, error) {
 	rnd := mrand.New(&cryptoSource{})
 	cords := rnd.Perm(255)
 
+	degree := byte(k) - 1
+	mid, top, err := generateCoefficients(len(secret), degree)
+	if err != nil {
+		return nil, err
+	}
+
 	shares := make([][]byte, n)
 	for i := range shares {
 		shares[i] = make([]byte, len(secret)+1)
 		shares[i][len(secret)] = byte(cords[i]) + 1
 	}
 
+	midLen := int(degree) - 1
 	for i, b := range secret {
-		p, err := generate(byte(k)-1, b)
-		if err != nil {
-			return nil, err
-		}
+		p := buildPolynomial(degree, b, mid[i*midLen:(i+1)*midLen], top[i])
 
 		for j := 0; j < n; j++ {
 			x := byte(cords[j]) + 1
@@ -115,16 +130,17 @@ func Combine(shares ...[]byte) ([]byte, error) {
 	}
 
 	l := len(shares[0])
-	c := make(map[byte]bool, len(shares))
-	c[shares[0][l-1]] = true
+	var seen [256]bool
+	seen[shares[0][l-1]] = true
 	for i := 1; i < len(shares); i++ {
 		if len(shares[i]) != l {
 			return nil, ErrInvalidShares
 		}
-		if ok := c[shares[i][l-1]]; ok {
+		x := shares[i][l-1]
+		if seen[x] {
 			return nil, ErrInvalidShares
 		}
-		c[shares[i][l-1]] = true
+		seen[x] = true
 	}
 
 	secret := make([]byte, l-1)
